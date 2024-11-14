@@ -6,6 +6,7 @@ import axios from 'axios';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { UserProvider } from './context/userContext';
 
 const App = () => {
 
@@ -17,13 +18,15 @@ const App = () => {
 
   axios.defaults.baseURL = "http://localhost:3500/api/v1"
   return (
-    <PayPalScriptProvider options={initialOptions}>
-      <BrowserRouter>
-        <NavbarComponent/>
-        <RouterComponent/>
-      </BrowserRouter>
-      <ToastContainer className="top-16"/>
-    </PayPalScriptProvider>
+    <UserProvider>
+      <PayPalScriptProvider options={initialOptions}>
+        <BrowserRouter>
+          <NavbarComponent/>
+          <RouterComponent/>
+        </BrowserRouter>
+        <ToastContainer className="top-16"/>
+      </PayPalScriptProvider>
+    </UserProvider>
     
   )
 }

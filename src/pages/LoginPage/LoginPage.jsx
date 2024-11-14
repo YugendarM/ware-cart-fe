@@ -3,12 +3,15 @@ import { Button, Form, Input } from 'antd';
 import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import useUserContext from '../../hooks/useUserContext';
 
 const LoginPage = () => {
 
     const [form] = Form.useForm()
     const navigate = useNavigate()
     const location = useLocation()
+
+    const {setUserProfile, setIsUserLoggedIn} = useUserContext()
 
     const handleSignUpButton = (event) => {
       event.preventDefault()
@@ -39,6 +42,8 @@ const LoginPage = () => {
             )
 
             if(response.status === 200){
+              setUserProfile(response.data.userData)
+              setIsUserLoggedIn(true)
                 toast.success("User logged In")
                 if(location.state && location.state.products){
                   navigate("/checkout", {

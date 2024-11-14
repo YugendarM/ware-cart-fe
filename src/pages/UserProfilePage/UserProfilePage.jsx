@@ -6,12 +6,15 @@ import { IoPowerSharp } from 'react-icons/io5'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button, Form, Input, InputNumber, Radio } from 'antd' 
 import { toast } from 'react-toastify'
+import useUserContext from '../../hooks/useUserContext'
 
 const UserProfilePage = () => {
 
     const navigate = useNavigate()
-    const [userData, setUserData] = useState({})
+    // const [userData, setUserData] = useState({})
     const [isEditOpen, setIsEditOpen] = useState(false)
+
+    const {userProfile, setUserProfile, setIsUserLoggedIn} = useUserContext()
 
     const [form] = Form.useForm() 
 
@@ -27,6 +30,8 @@ const UserProfilePage = () => {
             })
       
             if(response.status === 200){
+              setUserProfile({})
+              setIsUserLoggedIn(false)
               toast.success("User Loged out")
               navigate("/")
             }
@@ -51,20 +56,20 @@ const UserProfilePage = () => {
     }
 
 
-    const getUserDetails = async () => {
-      try {
-          const response = await axios.get("/user/getUserDetails", { withCredentials: true }) 
-          if (response.status === 200) {
-              setUserData(response.data) 
-          }
-      } catch (error) {
-          if (error.response) {
-            toast.error(`Error: ${error.response.status} - ${error.response.data.message}`) 
-          } else {
-            toast.error("An unexpected error occurred in fetching user details. Please try again.") 
-          }
-      }
-  } 
+  //   const getUserDetails = async () => {
+  //     try {
+  //         const response = await axios.get("/user/getUserDetails", { withCredentials: true }) 
+  //         if (response.status === 200) {
+  //             setUserData(response.data) 
+  //         }
+  //     } catch (error) {
+  //         if (error.response) {
+  //           toast.error(`Error: ${error.response.status} - ${error.response.data.message}`) 
+  //         } else {
+  //           toast.error("An unexpected error occurred in fetching user details. Please try again.") 
+  //         }
+  //     }
+  // } 
 
   const handleEditProfile = async(values) => {
     try {
@@ -91,9 +96,9 @@ const UserProfilePage = () => {
     }
   }
 
-    useEffect(() => {
-      getUserDetails()
-    }, [])
+    // useEffect(() => {
+    //   getUserDetails()
+    // }, [])
 
     useEffect(() => {
       if (location?.state?.isEditOpen) {
@@ -104,10 +109,8 @@ const UserProfilePage = () => {
   }, [location.state])
 
   useEffect(() => {
-    if (Object.keys(userData).length > 0) {
-        form.setFieldsValue(userData)  
-    }
-  }, [userData, form])
+        form.setFieldsValue(userProfile)  
+  }, [ form])
     
 
   return (
@@ -120,7 +123,7 @@ const UserProfilePage = () => {
           </div>
           <div>
             <p className='text-xs text-gray-700'>Hello,</p>
-            <p className='text-base font-medium'>{userData?.firstName} {userData?.lastName}</p>
+            <p className='text-base font-medium'>{userProfile?.firstName} {userProfile?.lastName}</p>
           </div>
         </div>
 
@@ -133,8 +136,8 @@ const UserProfilePage = () => {
       <div className='w-[70%] rounded-sm bg-white shadow-custom-medium flex flex-col gap-6 px-4 py-4'>
         <div className=' '>
           <div>
-            <h1 className='text-3xl font-semibold text-gray-800'>{userData?.firstName} {userData?.lastName}</h1>
-            <p className='text-base text-gray-500'>{userData?.email}</p>
+            <h1 className='text-3xl font-semibold text-gray-800'>{userProfile?.firstName} {userProfile?.lastName}</h1>
+            <p className='text-base text-gray-500'>{userProfile?.email}</p>
           </div>
         </div>
 
@@ -143,7 +146,7 @@ const UserProfilePage = () => {
             <div className='w-full'>
               <h1 className='text-lg font-medium text-gray-600'>Edit Profile</h1>
                 <Form
-                    initialValues={userData}
+                    initialValues={userProfile}
                     form={form}
                     name="basic"
                     labelCol={{ span: 12 }}
@@ -183,22 +186,22 @@ const UserProfilePage = () => {
           :
           <>
             {
-              userData?.phoneNo &&
+              userProfile?.phoneNo &&
               <div>
                 <p className='text-gray-500 text-sm '>Phone Number: </p>
-                <p className='text-gray-800 font-medium text-lg'>+91 {userData?.phoneNo}</p>
+                <p className='text-gray-800 font-medium text-lg'>+91 {userProfile?.phoneNo}</p>
               </div>
             }
 
             {
-              userData?.addressFirstLine &&
+              userProfile?.addressFirstLine &&
               <div>
                 <p className='text-gray-500 text-sm '>Address: </p>
                 <div>
-                  <p className='text-gray-800 font-medium text-base'>{userData?.addressFirstLine+", "}</p>
-                  <p className='text-gray-800 font-medium text-base'>{userData?.addressSecondLine+ ", "}</p>
-                  <p className='text-gray-800 font-medium text-base'>{userData?.city}{", "+userData?.state}{"," + userData?.country? userData?.country : null} </p>
-                  <p className='text-gray-800 font-semibold text-base'>{userData?.pincode} </p>
+                  <p className='text-gray-800 font-medium text-base'>{userProfile?.addressFirstLine+", "}</p>
+                  <p className='text-gray-800 font-medium text-base'>{userProfile?.addressSecondLine+ ", "}</p>
+                  <p className='text-gray-800 font-medium text-base'>{userProfile?.city}{", "+userProfile?.state}{"," + userProfile?.country? userProfile?.country : null} </p>
+                  <p className='text-gray-800 font-semibold text-base'>{userProfile?.pincode} </p>
                 </div>
               </div>
             }

@@ -2,16 +2,18 @@ import { Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { FaHeart, FaStar } from 'react-icons/fa6'
 import { Link, redirect, useLocation, useNavigate } from 'react-router-dom'
-import Cookies from 'js-cookie';
 import axios from 'axios';
 import { Button, Modal } from 'antd'
 import { toast } from 'react-toastify';
 import { MdAddShoppingCart } from 'react-icons/md';
+import useUserContext from '../../hooks/useUserContext';
 
 const UserProductCard = ({product, isProductWishListed, isProductAddedInCart}) => {
 
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
+
+    const {isUserLoggedIn} = useUserContext()
 
     const {pathname} = useLocation()
 
@@ -19,7 +21,7 @@ const UserProductCard = ({product, isProductWishListed, isProductAddedInCart}) =
 
     const handleAddWishlist = async(event) => {
       event.preventDefault()
-        if(isLoggedIn){
+        if(isUserLoggedIn){
         try{
             const response = await axios.put(
               `/user/addProductToWishlist/${product._id}`,
@@ -71,7 +73,7 @@ const UserProductCard = ({product, isProductWishListed, isProductAddedInCart}) =
 
     const handleAddToCart = async(event) => {
       event.preventDefault()
-      if(!isLoggedIn){
+      if(!isUserLoggedIn){
         navigate("/login", {
           state: {
             redirect: "/products"
@@ -179,7 +181,7 @@ const UserProductCard = ({product, isProductWishListed, isProductAddedInCart}) =
 
     const handleBuyNow = (event) => {
         event.preventDefault()
-        if(isLoggedIn){
+        if(isUserLoggedIn){
             navigate("/checkout", {
                 state: {
                     products: [{
@@ -199,8 +201,7 @@ const UserProductCard = ({product, isProductWishListed, isProductAddedInCart}) =
     }
 
     useEffect(() => {
-        const sessionToken = Cookies.get('SessionID');
-        if (sessionToken) {
+        if (isUserLoggedIn) {
           setIsLoggedIn(true);
         } else {
           setIsLoggedIn(false);

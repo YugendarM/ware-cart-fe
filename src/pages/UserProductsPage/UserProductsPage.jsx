@@ -3,9 +3,9 @@ import React, { useEffect, useState, useSyncExternalStore } from 'react'
 import { IoSearch } from 'react-icons/io5'
 import UserProductCard from '../../components/UserProductCard/UserProductCard'
 import { getSocket, initiateSocketConnection } from '../../utilities/socketService'
-import Cookies from 'js-cookie' 
 import { useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import useUserContext from '../../hooks/useUserContext'
 
 const UserProductsPage = () => {
 
@@ -15,7 +15,8 @@ const UserProductsPage = () => {
     const [filteredProductData, setFilteredProductData] = useState([])
     const [wishlistData, setWishlistData] = useState([])
     const [cartItemData, setCartItemData] = useState([])
-    const [isLoggedIn, setIsLoggedIn] = useState(false) 
+
+    const {isUserLoggedIn, userProfile} = useUserContext()
 
     const {pathname} = useLocation()
 
@@ -25,112 +26,60 @@ const UserProductsPage = () => {
     }
 
     const isProductWishListed = (productId) => {
-      return wishlistData?.some((list) => list._id === productId) || false
+      return wishlistData?.includes(productId) || false
     }
 
     const isProductAddedInCart = (productId) => {
-      return cartItemData?.some((item) => item._id === productId) || false
+      return cartItemData?.includes(productId) || false
     }
-    
 
-    useEffect(() => {
-        const getProductsData = async() => {
-            try{
-              const response = await axios.get(
-                "/product/users",
-                {
-                  withCredentials: true
-                }
-              )
-
-              if(response.status === 200){
-                setProductsData(response.data.data)
-                setFilteredProductData(response.data.data)
-              }
-              
-            }
-            catch (error) {
-              if (error.response) {
-                if (error.response.status === 500) {
-                  toast.error(`An error occurreddddddd: ${error.response.status} ${error.response.data.message}`) 
-                } else {
-                  toast.error(`An error occurreddddddd: ${error.response.status} ${error.response.data.message}`) 
-                }
-              } else if (error.request) {
-                toast.error("No response from server. Please try again.") 
-              } else {
-                toast.error("An unexpected error occurred. Please try again.") 
-              }
-            }
-            
-        }
-
-      const getAllWishlistedProducts = async() => {
-        try{
-          const response = await axios.get(
-            "/user/wishlist",
-            {
-              withCredentials: true
-            }
-          )
-    
-          if(response.status === 200){
-            setWishlistData(response.data.data)
+    const getProductsData = async() => {
+      try{
+        const response = await axios.get(
+          "/product/users",
+          {
+            withCredentials: true
           }
-          
+        )
+
+        console.log(response)
+
+        if(response.status === 200){
+          setProductsData(response.data.data)
+          setFilteredProductData(response.data.data)
         }
-        catch (error) {
-          if (error.response) {
-            if (error.response.status === 500) {
-              console.error("An error occurred while fetching Wishlist data") 
-            } else {
-              console.error(`An error occurred: ${error.response.status} ${error.response.data.message}`) 
-            }
-          } else if (error.request) {
-            console.error("No response from server. Please try again.") 
+        
+      }
+      catch (error) {
+        if (error.response) {
+          if (error.response.status === 500) {
+            toast.error(`An error occurreddddddd: ${error.response.status} ${error.response.data.message}`) 
           } else {
-            console.error("An unexpected error occurred. Please try again.") 
+            toast.error(`An error occurreddddddd: ${error.response.status} ${error.response.data.message}`) 
           }
+        } else if (error.request) {
+          toast.error("No response from server. Please try again.") 
+        } else {
+          toast.error("An unexpected error occurred. Please try again.") 
         }
       }
-
-      const getAllCartItems = async() => {
-        try{
-          const response = await axios.get(
-            "/user/cartItems",
-            {
-              withCredentials: true
-            }
-          )
-          if(response.status === 200){
-            setCartItemData(response.data.data)
-          }
-          
-        }
-        catch (error) {
-          if (error.response) {
-            if (error.response.status === 500) {
-              console.error("An error occurred while fetching Cart data") 
-            } else {
-              console.error(`An error occurred: ${error.response.status} ${error.response.data.message}`) 
-            }
-          } else if (error.request) {
-            console.error("No response from server. Please try again.") 
-          } else {
-            console.error("An unexpected error occurred. Please try again.") 
-          }
-        }
-      }
-
-        if(isLoggedIn){
-          getAllCartItems()
-          getAllWishlistedProducts()
-        }
-        getProductsData()
-    }, [isLoggedIn])
+      
+  }
 
     useEffect(() => {
-        const searchQuery = productSearch.trim().toLowerCase() 
+        if(isUserLoggedIn){
+          console.log(userProfile)
+          setWishlistData(userProfile.wishlist)
+          setCartItemData(userProfile.cart)
+        }
+    }, [productsData])
+
+    useEffect(() => {
+      getProductsData()
+    },[])
+
+    useEffect(() => {
+        const searchQuery = productSearch?.trim().toLowerCase() 
 
         if(productSearch.length !== 0){
             setIsSortOrFilterApplied(true)
@@ -140,8 +89,8 @@ const UserProductsPage = () => {
           }
         const filteredData = Array.isArray(productsData) && productsData?.length > 0 &&
         productsData.filter((product) =>
-          product.productName.toLowerCase().includes(searchQuery) ||
-          product.productDescription.toLowerCase().includes(searchQuery) 
+          product?.productName?.toLowerCase().includes(searchQuery) ||
+          product?.productDescription?.toLowerCase().includes(searchQuery) 
     
         ) 
         setFilteredProductData(filteredData) 
@@ -170,6 +119,7 @@ const UserProductsPage = () => {
         })
 
         socket.on("wishlistUpdated", (updatedWishlist) => {
+          console.log(updatedWishlist)
           setWishlistData(updatedWishlist)
         })
 
@@ -183,14 +133,6 @@ const UserProductsPage = () => {
         
     }, [])
 
-    useEffect(() => {
-      const sessionToken = Cookies.get('SessionID') 
-      if (sessionToken) {
-        setIsLoggedIn(true) 
-      } else {
-        setIsLoggedIn(false) 
-      }
-    }, [pathname])   
 
   return (
     <div className='px-5 md:px:20 lg:px-56 py-10 bg-[#F4F5F5]'>

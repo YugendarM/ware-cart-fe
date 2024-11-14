@@ -4,15 +4,17 @@ import { Link } from 'react-router-dom'
 import UserProductCard from '../../components/UserProductCard/UserProductCard'
 import { getSocket, initiateSocketConnection } from '../../utilities/socketService'
 import { toast } from 'react-toastify'
+import useUserContext from '../../hooks/useUserContext'
 
 const UserWishlistPage = () => {
 
   const [wishlistData, setWishlistData] = useState([])
-  const [userData, setUserData] = useState([])
+
+  const {userProfile} = useUserContext()
 
   const isProductWishListed = (productId) =>{
-    if(userData && userData.wishlist){
-      return userData.wishlist.includes(productId)
+    if(userProfile?.wishlist){
+      return userProfile?.wishlist?.includes(productId)
     }
   }
 
@@ -45,38 +47,7 @@ const UserWishlistPage = () => {
         }
       }
     }
-
-    const getUserData = async() => {
-      try{
-        const response = await axios.get(
-          "/user/getUserDetails",
-          {
-            withCredentials: true
-          }
-        )
-  
-        if(response.status === 200){
-          setUserData(response.data)
-        }
-        
-      }
-      catch (error) {
-        if (error.response) {
-          if (error.response.status === 500) {
-            toast.error("An error occurred while fetching User data");
-          } else {
-            toast.error(`An error occurred: ${error.response.status} ${error.response.data.message}`);
-          }
-        } else if (error.request) {
-          toast.error("No response from server. Please try again.");
-        } else {
-          toast.error("An unexpected error occurred. Please try again.");
-        }
-      }
-      
-  }
-
-    getUserData() 
+ 
     getAllWishlistedProducts()
   }, [])
 
