@@ -16,7 +16,7 @@ const App = () => {
       intent: "capture",
   };
 
-  axios.defaults.baseURL = import.meta.env.BASE_URL
+  axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
   return (
     <UserProvider>
       <PayPalScriptProvider options={initialOptions}>
